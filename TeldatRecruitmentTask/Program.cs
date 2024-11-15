@@ -1,28 +1,45 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using Microsoft.EntityFrameworkCore;
+using TeldatRecruitmentTask.Data;
+using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 
-// Add services to the container.
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<TodoContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSpaStaticFiles(configuration =>
+{
+    configuration.RootPath = "ClientApp/build";
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRouting();
+app.UseSpaStaticFiles();
 
+app.UseRouting();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller}/{action=Index}/{id?}");
+    pattern: "{controller}/{action=Index}/{id?}"
+);
 
-app.MapFallbackToFile("index.html");
+app.UseSpa(spa =>
+{
+    spa.Options.SourcePath = "ClientApp";
+
+    if (app.Environment.IsDevelopment())
+    {
+        spa.UseReactDevelopmentServer(npmScript: "start");
+    }
+});
 
 app.Run();
-
